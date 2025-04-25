@@ -1,0 +1,465 @@
+import random
+import copy
+
+
+monsters = {
+    "Bat": {
+        "name": "Bat",
+        "exhausted": False,
+        "level": 1,
+        "type": "flying",
+        "totalHP": 75,
+        "hp": 75,
+        "armour": 4,
+        "attackRatio": 0.4,
+        "speed": 4,
+        "status": "none",
+        "statusMoveCounter": "0",
+        "moves": {
+            "move_1": "lacerate",
+            "move_2": "fireGun"
+        }
+    },
+    "Jorell": {
+        "name": "Jorell",
+        "exhausted": False,
+        "level": 1,
+        "totalHP": 85,
+        "hp": 85,
+        "armour": 6,
+        "type": "normal",
+        "attackRatio": 0.5,
+        "speed": 6,
+        "status": "none",
+        "statusMoveCounter": "0",
+        "moves": {
+            "move_1": "lacerate",
+            "move_2": "fireGun"
+        }
+    },
+    "Sigma Man": {
+        "name": "Sigma Man",
+        "exhausted": False,
+        "level": 1,
+        "totalHP": 95,
+        "hp": 95,
+        "armour": 8,
+        "type": "fighting",
+        "attackRatio": 0.7,
+        "speed": 3,
+        "status": "none",
+        "statusMoveCounter": "0",
+        "moves": {
+            "move_1": "lacerate",
+            "move_2": "fireGun"
+        }
+    },
+    "Spalacinae": {
+        "name": "Spalacinae",
+        "exhausted": False,
+        "level": 1,
+        "totalHP": 105,
+        "hp": 105,
+        "armour": 10,
+        "type": "ghost",
+        "attackRatio": 0.3,
+        "speed": 1,
+        "status": "none",
+        "statusMoveCounter": "0",
+        "moves": {
+            "move_1": "lacerate",
+            "move_2": "fireGun"
+        }
+    }
+}
+
+
+moves = {
+    "lacerate": {
+        "attackDamage": 50,
+        "attackStatus": 0,
+        "attackStatusChance": 0,
+        "attackType": "fighting"
+    },
+    "fireGun": {
+        "attackDamage": 60,
+        "attackStatus": 2,
+        #Chance numbers represent a percentage (i.e., 40 = 40%)
+        "attackStatusChance": 40,
+        "attackType": "normal"
+    }
+}
+
+
+typeDynamics = {
+    "flyingWeakness": "fighting",
+    "flyingStrength": "normal",
+    "normalWeakness": "flying",
+    "normalStrength": "ghost",
+    "fightingWeakness": "ghost",
+    "fightingStrength": "flying",
+    "ghostWeakness": "normal",
+    "ghostStrength": "flying"
+}
+
+
+items = {
+    "Syringe": 20,
+    "Burn Ointment": "none",
+
+
+}
+
+
+def getMove(input_num, attackerMonster, monsters):
+    moveKey = f"move_{input_num}"
+    return monsters[attackerMonster]["moves"].get(moveKey, "Invalid move number")
+
+
+def attackRatioCalc(attackerName, monsters, moves, move):
+    moveDamage = moves[move].get("attackDamage")
+    attackRatio = monsters[attackerName].get("attackRatio")
+    return (attackRatio * moveDamage)
+
+
+def armourDamageCalc(attackRatioDamage, receiverName, monsters):
+    #Calculates the damage after armour stat is calculated, could be revamped.
+    armour = monsters[receiverName].get("armour")
+    moveArmorDamage = attackRatioDamage  - armour
+    return moveArmorDamage
+
+
+def status(moves, move, receiverStatus, receiverName):
+    print ("a")
+    print (receiverStatus)
+    print (move)
+    runChance = random.randint (1, 100)
+    statusRemovalChance = random.randint (1, 100)
+    statusTimerCount = int(monsters[receiverName].get("statusMoveCounter"))
+    Chance = moves[move].get("attackStatusChance")
+    statusCode = moves[move].get("attackStatus")
+    print (f"Current {receiverName} Status is", receiverStatus)
+    print (runChance, Chance)
+    statusDict = {
+        0: "none",
+        1: "paralysis",
+        2: "burn",
+        3: "poison",
+        4: "sleep"
+    }
+    if runChance <= Chance and receiverStatus == "none":
+        statusEffect = statusDict.get(statusCode, "unknown")
+        print ("EA", statusEffect)
+    elif receiverStatus == "paralysis":
+        statusRemoval = 0 + (20*statusTimerCount)
+        statusEffect = statusDict.get(statusCode, "unknown")
+        if statusRemovalChance <= statusRemoval:
+            statusEffect = "none"
+        else:
+            monsters[receiverName]["statusMoveCounter"] = str (int (monsters[receiverName]["statusMoveCounter"]) + 1)
+    elif receiverStatus == "burn":
+        statusRemoval = 0 + (20*statusTimerCount)
+        print ("Chance to remove burn", statusRemovalChance, statusRemoval)
+        print (statusTimerCount)
+        if statusDict.get(statusCode) != "none":
+            statusEffect = statusDict.get(statusCode, "unknown")
+        else:
+            statusEffect = receiverStatus
+        if statusRemovalChance <= statusRemoval:
+            statusEffect = "none"
+            print ("Status Removed, ", receiverName)
+            monsters[receiverName]["statusMoveCounter"] = str (0)
+        else:
+            monsters[receiverName]["statusMoveCounter"] = str (int (monsters[receiverName]["statusMoveCounter"]) + 1)
+    elif receiverStatus == "poison":
+        statusRemoval = 0 + (20*statusTimerCount)
+        statusEffect = statusDict.get(statusCode, "unknown")
+        if statusRemovalChance <= statusRemoval:
+            statusEffect = "none"
+        else:
+            monsters[receiverName]["statusMoveCounter"] = str (int (monsters[receiverName]["statusMoveCounter"]) + 1)
+            print (statusEffect)
+    elif receiverStatus == "sleep":
+        statusRemoval = 0 + (20*statusTimerCount)
+        statusEffect = statusDict.get(statusCode, "unknown")
+        if statusRemovalChance <= statusRemoval:
+            statusEffect = "none"
+        else:
+            monsters[receiverName]["statusMoveCounter"] = str (int (monsters[receiverName]["statusMoveCounter"]) + 1)
+    else:
+        print ("z")
+        statusEffect = "none"
+    print ("Final Receiver Status is", statusEffect)
+    return statusEffect
+
+
+
+
+def effectivenessCalc(receiverName, monsters, moves, move, typeDynamics, armourRatioDamage):
+    attackType = moves[move].get("attackType")
+    attackStrength = typeDynamics.get(f"{attackType}Strength")
+    attackWeakness = typeDynamics.get(f"{attackType}Weakness")
+    receiverType = monsters[receiverName].get("type")
+   
+    if receiverType == attackStrength:
+        damage = armourRatioDamage * 2
+        print (f"2X of {damage/2}")
+    elif receiverType == attackWeakness:
+        damage = armourRatioDamage * 0.5
+    else:
+        damage = armourRatioDamage
+    return damage
+
+
+def finalDamageCalculator(netDamageReceiver, netDamageAttacker, receiverStatus, receiverName, attackerName, attackerStatus):
+    if receiverStatus == "none":  
+        netDamageReceiver = round(netDamageReceiver)
+    elif receiverStatus == "paralysis":
+        netDamageReceiver = 0
+        monsters[receiverName]["status"] = "paralysis"
+    elif receiverStatus == "burn":
+        burnDamageReceiver = 0.1* int(monsters[receiverName].get("totalHP"))
+        print ("Receiver Burn:", burnDamageReceiver)
+        netDamageReceiver = round (netDamageReceiver + (burnDamageReceiver))
+        monsters[receiverName]["status"] = "burn"
+    elif receiverStatus == "poison":
+        poisonDamageReceiver = 0.1* int(monsters[receiverName].get("totalHP"))
+        print ("Receiver poison:", burnDamageReceiver)
+        netDamageReceiver = round (netDamageReceiver + (poisonDamageReceiver))
+        monsters[receiverName]["status"] = "poison"
+    elif receiverStatus == "sleep":
+        netDamageReceiver = 0
+        monsters[receiverName]["status"] = "sleep"
+    if attackerStatus == "none":  
+        netDamageAttacker = 0
+    elif attackerStatus == "paralysis":
+        netDamageAttacker = 0
+        monsters[attackerName]["status"] = "paralysis"
+    elif attackerStatus == "burn":
+        burnDamageAttacker = 0.1* int(monsters[attackerName].get("totalHP"))
+        print ("Attacker Burn:", burnDamageAttacker)
+        netDamageAttacker = round (burnDamageAttacker)
+        monsters[attackerName]["status"] = "burn"
+    elif attackerStatus == "poison":
+        poisonDamageAttacker = 0.1* int(monsters[attackerName].get("totalHP"))
+        print ("Attacker Poison:", poisonDamageAttacker)
+        netDamageAttacker = round (poisonDamageAttacker)
+        monsters[attackerName]["status"] = "poison"
+    elif attackerStatus == "sleep":
+        netDamageAttacker = 0
+        monsters[attackerName]["status"] = "sleep"
+    print (f"The damage amount is {netDamageAttacker}")
+    return netDamageReceiver, netDamageAttacker
+
+
+def damageApplier (netDamageReceiver, netDamageAttacker, receiverName, attackerName):
+    print (f"{receiverName} has {monsters[receiverName]['hp']} hp")
+    print (f"{attackerName} has {monsters[attackerName]['hp']} hp")
+    if monsters[receiverName]["hp"] - netDamageReceiver < 0:
+        monsters[receiverName]["hp"] = 0
+        print (f"{receiverName}, has no hp left")
+    else:
+        monsters[receiverName]["hp"] = monsters[receiverName]["hp"] - netDamageReceiver
+    print (f"{receiverName} has {monsters[receiverName]["hp"]} hp")
+    if monsters[attackerName]["hp"] - netDamageAttacker < 0:
+        monsters[attackerName]["hp"] = 0
+        print (f"{attackerName}, has no hp left")
+
+
+    else:
+        monsters[attackerName]["hp"] = monsters[attackerName]["hp"] - netDamageAttacker
+    print (f"{receiverName} has {monsters[receiverName]['hp']} hp left")
+    print (f"{attackerName} has {monsters[attackerName]['hp']} hp left")
+
+
+def monsterSpeedCheck(monster1, monster2, monsters):
+    monster1Speed = monsters[monster1].get("speed")
+    monster2Speed = monsters[monster2].get("speed")
+    monster1Exhausted = monsters[monster1].get("exhausted")
+    monster2Exhausted = monsters[monster2].get("exhausted")
+   
+    if monster1Speed > monster2Speed and not monster1Exhausted:
+        attacker = monsters[monster1].get("name")
+        defender = monsters[monster2].get("name")
+        monsters[monster1]["exhausted"] = True
+    elif monster2Speed > monster1Speed and not monster2Exhausted:
+        attacker = monsters[monster2].get("name")
+        defender = monsters[monster1].get("name")
+        monsters[monster2]["exhausted"] = True
+
+
+    elif monster1Speed == monster2Speed and not monster1Exhausted and not monster2Exhausted:
+        rand = random.randint(0, 1)
+        if rand == 0:
+            attacker = monsters[monster1].get("name")
+            defender = monsters[monster2].get("name")
+            monsters[monster1]["exhausted"] = True
+
+
+        else:
+            attacker = monsters[monster2].get("name")
+            defender = monsters[monster1].get("name")
+            monsters[monster2]["exhausted"] = True
+           
+    elif monster1Exhausted == True:
+        attacker = monsters[monster2].get("name")
+        defender = monsters[monster1].get("name")
+        monsters[monster2]["exhausted"] = True
+        monsters[monster1]["exhausted"] = False
+
+
+    elif monster2Exhausted == True:
+        attacker = monsters[monster1].get("name")
+        defender = monsters[monster2].get("name")
+        monsters[monster1]["exhausted"] = True
+        monsters[monster2]["exhausted"] = False
+    return attacker, defender
+
+
+
+
+def monsterSwapper(attacker, team1list, team2):
+    #currently solving when a monster gets knocked out, to force the swap, and if only one remains to force the swap.
+    x = 0
+    team1 = (team1list)
+    team1length = len(team1)
+    team1MonsterExhausted = monsters[attacker].get("exhausted")
+    for monster in team1[:]:
+        print (team1[x].get("hp"))
+        if team1[x].get("hp") <= 0:
+            team1.remove(team1[x])
+            x = x - 1
+        x = x + 1
+    print ("length", len(team1))
+    if len(team1) == 1:
+        print ("Only 1 monster is left")
+        swap = "yes"
+    elif monsters[attacker].get("hp") != 0 and len(team1) != 0 and len(team1) != 1:
+        swap = input("do you want to swap monsters? (yes or no)")
+    elif len(team1) == 0:
+        print ("All your monsters have been knocked out!")
+        #Apply game ending code here
+        exit ()
+    else:
+        swap = "yes"
+    if swap == "yes":
+        playerChoice = int(input(f"team1) which monster would you like to use (1-{len(team1)})")) -1
+        team1Monster = team1[playerChoice]
+        if team1MonsterExhausted == True:
+            monsters[attacker]["exhausted"] = True
+            monsters[team1Monster.get("name")]["exhausted"] = True
+    else:
+        team1Monster = monsters.get(attacker)
+    return team1Monster
+
+
+def enemyMonsterSwapper (team2MonsterName, team1, team2):
+    x = 0
+    for monster in team2[:]:
+        if team2[x].get("hp") <= 0:
+            team2.remove(team2[x])
+    if len(team2) == 0:
+        print ("All of your opponent's monsters have been knocked out! You win!")
+        #Apply game ending code here
+        exit ()
+    else:
+        team2Length = len(team2)
+        randNum = (random.randint(1, team2Length)-1)
+        team2Monster = team2[randNum]
+        return team2Monster
+
+
+def attackCalculator (team1, team2, attacker, team1Monster, team2Monster):
+    team1MonsterName = team1Monster.get("name")
+    team2MonsterName = team2Monster.get("name")
+    team1MonsterStatus = team1Monster.get("status")
+    team2MonsterStatus = team2Monster.get("status")
+    moveSelection = list(team2Monster["moves"].values())
+    lenMoveSelection = len(moveSelection)
+    moveSelected = random.randint (1,lenMoveSelection)
+    move = (getMove (moveSelected, team2Monster.get("name"), monsters))
+    attackRatioDamage = (attackRatioCalc (team2MonsterName, monsters, moves, move))
+    armourRatioDamage = (armourDamageCalc(attackRatioDamage, team1MonsterName, monsters))
+    #effectivenessDamage is the net damage before considering status effects, no damage has been passed through yet though.
+    effectivenessRatioDamage = effectivenessCalc (team1MonsterName, monsters, moves, move, typeDynamics, armourRatioDamage)
+    team1MonsterStatusChange = status(moves, move, team1MonsterStatus, team1MonsterName)
+    if team2MonsterStatus != "none":
+        team2MonsterStatusChange = status(moves, move, team2MonsterStatus, team2MonsterName)
+    else:
+        team2MonsterStatusChange = "none"
+    #add missing input variables
+    trueDamageReceiver, trueDamageAttacker = finalDamageCalculator (effectivenessRatioDamage, 0, team1MonsterStatusChange, team1MonsterName, team2MonsterName, team2MonsterStatusChange)
+    damageApplier (trueDamageReceiver, trueDamageAttacker, team1MonsterName, team2MonsterName)
+    if team1Monster.get("hp") == 0:
+        team1Monster = monsterSwapper (team1MonsterName, team1, team2)
+    elif team2Monster.get("hp") == 0:
+        team2Monster = enemyMonsterSwapper (team2MonsterName, team1, team2)
+    return team1Monster, team2Monster
+
+
+def turnHandler (team1, team2, attacker, team1Monster, team2Monster):
+    #Team1 is mentioned since only the player, who is always team1 can control these options
+    team1MonsterName = team1Monster.get("name")
+    team2MonsterName = team2Monster.get("name")
+    team1MonsterStatus = team1Monster.get("status")
+    team2MonsterStatus = team2Monster.get("status")
+    turnChoice = int(input("What would you like to do? \n Attack = 1, Items = 2, Swap Monster = 3, Run = 4. \n")) -1
+    turnOptions = {
+        0: "attack",
+        1: "items",
+        2: "swap",
+        3: "run",
+    }
+    turnOptionChosen = turnOptions.get(turnChoice)
+    if turnOptionChosen == "attack":
+        moveSelection = list(team1Monster["moves"].values())
+        moveSelected = int(input(f"Choose an attack from these using numbers, (1 or 2): {", ".join(moveSelection)}\n"))
+        move = (getMove (moveSelected, team1Monster.get("name"), monsters))
+        attackRatioDamage = (attackRatioCalc (team1MonsterName, monsters, moves, move))
+        armourRatioDamage = (armourDamageCalc(attackRatioDamage, team2MonsterName, monsters))
+        #effectivenessDamage is the net damage before considering status effects, no damage has been passed through yet though.
+        effectivenessRatioDamage = effectivenessCalc (team2MonsterName, monsters, moves, move, typeDynamics, armourRatioDamage)
+        if team1MonsterStatus != "none":
+            team1MonsterStatusChange = status(moves, move, team1MonsterStatus, team1MonsterName)
+        else:
+            team1MonsterStatusChange = "none"
+        team2MonsterStatusChange = status(moves, move, team2MonsterStatus, team2MonsterName)
+        trueDamageReceiver, trueDamageAttacker = finalDamageCalculator (effectivenessRatioDamage, 0, team2MonsterStatusChange, team2MonsterName, team1MonsterName, team1MonsterStatusChange)
+        damageApplier (trueDamageReceiver, trueDamageAttacker, team2MonsterName, team1MonsterName)
+        if team2Monster.get("hp") == 0:
+            print (f"{team2MonsterName}, has been knocked out")
+            team2Monster = enemyMonsterSwapper (team2MonsterName, team1, team2)
+
+
+    elif turnOptionChosen == "items":
+        pass
+    elif turnOptionChosen == "swap":
+        team1Monster = monsterSwapper (attacker, team1, team2)
+    elif turnOptionChosen == "run":
+        #Currently the run function is static, perhaps it can vary depending on speed or level difference, by changing the 60?
+        runChance = random.randint (0,99)
+        if runChance <= 60:
+            print ("Successfully got away!")
+            exit ()
+    return team1Monster, team2Monster
+
+
+def mainBattle():
+    #For this, team 1 will be the player's team, and team 2 will be the opponent.
+    team1 = [monsters.get("Bat"), monsters.get("Jorell")]
+    team2 = [monsters.get("Sigma Man"), monsters.get("Spalacinae")]
+    team1Monster = team1[int(input("team1) which monster would you like to use (1 or 2) \n")) - 1]
+    team2Monster = team2[int(input("team2) which monster would you like to use (1 or 2) \n")) - 1]
+    while (team1Monster.get("hp")) > 0 and (team2Monster.get("hp")) > 0:
+        attacker, defender = (monsterSpeedCheck(team1Monster.get("name"), team2Monster.get("name"), monsters))
+        print (f"the attacker is {attacker}, and the defender is {defender}")
+        if attacker == team1Monster.get("name"):
+            team1Monster, team2Monster = turnHandler (team1, team2, attacker, team1Monster, team2Monster)
+        else:
+            team1Monster, team2Monster = attackCalculator (team1, team2, attacker, team1Monster, team2Monster)
+
+
+
+
+# Run the main battle to test output
+mainBattle()
